@@ -18,5 +18,3 @@ npm run dev
 ```
 
 対応OS: Windows / macOS / Linux（Arch含む）
-
-うぇ〜い
