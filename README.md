@@ -1,0 +1,2 @@
+# SmartWiget
+iPhoneウィジェット風のサイドパネルをPCで再現するクロスOSアプリ
