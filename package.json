@@ -1,0 +1,12 @@
+{
+  "name": "smartwiget",
+  "version": "0.1.0",
+  "description": "SmartWiget minimal cross-platform panel MVP",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^37.0.0"
+  }
+}
