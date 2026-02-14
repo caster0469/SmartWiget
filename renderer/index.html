@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartWiget Flip Clock</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="panel">
+        <div class="top">
+          <div class="label">FLIP CLOCK</div>
+          <div class="sub" id="dateText">----</div>
+        </div>
+
+        <div class="clock">
+          <div class="group" aria-label="hours">
+            <div class="flip" id="h1"></div>
+            <div class="flip" id="h2"></div>
+          </div>
+
+          <div class="colon" aria-hidden="true">:</div>
+
+          <div class="group" aria-label="minutes">
+            <div class="flip" id="m1"></div>
+            <div class="flip" id="m2"></div>
+          </div>
+        </div>
+
+        <div class="foot">SmartWiget</div>
+      </section>
+    </main>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>

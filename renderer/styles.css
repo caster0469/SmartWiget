@@ -1,0 +1,198 @@
+:root{
+  color-scheme: dark;
+
+  --bg: #0b0f14;
+  --cardTop: #1a2230;
+  --cardBot: #151c28;
+
+  --line: rgba(255,255,255,.12);
+  --text: rgba(255,255,255,.95);
+  --sub: rgba(255,255,255,.70);
+
+  --radius: 18px;
+  --cardRadius: 16px;
+
+  --shadow: 0 22px 80px rgba(0,0,0,.55);
+  --cardShadow: 0 12px 26px rgba(0,0,0,.45);
+
+  /* パネル幅に合わせて縮む */
+  --gap: clamp(10px, 1.2vw, 14px);
+  --flipW: clamp(78px, 10vw, 118px);
+  --flipH: clamp(98px, 13vw, 140px);
+  --font: clamp(58px, 9vw, 86px);
+  --colon: clamp(40px, 6vw, 64px);
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans JP", sans-serif;
+  overflow:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:-60px;
+  background:
+    radial-gradient(900px 600px at 70% 10%, rgba(255,255,255,.07), transparent 60%),
+    radial-gradient(700px 700px at 10% 90%, rgba(255,255,255,.05), transparent 60%),
+    linear-gradient(180deg, rgba(11,15,20,.35), rgba(11,15,20,.92));
+  pointer-events:none;
+}
+
+.wrap{
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 18px;
+}
+
+.panel{
+  width: min(560px, 100%);
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.top{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  padding: 4px 6px 14px 6px;
+  user-select:none;
+}
+.label{
+  font-weight:800;
+  letter-spacing:.28em;
+  font-size: 12px;
+  opacity:.95;
+}
+.sub{
+  font-size: 12px;
+  color: var(--sub);
+}
+
+/* 中央寄せ固定（はみ出し防止） */
+.clock{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 16px;
+  flex-wrap: nowrap;
+}
+
+.group{
+  display:flex;
+  gap: var(--gap);
+  align-items:center;
+}
+
+.colon{
+  font-weight:900;
+  font-size: var(--colon);
+  line-height:1;
+  opacity:.85;
+  transform: translateY(-2px);
+  user-select:none;
+}
+
+/* ===== Flip (static) ===== */
+.flip{
+  width: var(--flipW);
+  height: var(--flipH);
+  perspective: 800px;
+}
+
+.card{
+  position:relative;
+  width:100%;
+  height:100%;
+  border-radius: var(--cardRadius);
+  box-shadow: var(--cardShadow);
+  overflow:hidden;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+/* 真ん中の割れ目 */
+.card::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:50%;
+  height:1px;
+  background: rgba(0,0,0,.55);
+  box-shadow: 0 -1px 0 rgba(255,255,255,.06);
+  z-index: 5;
+}
+
+/* 上半分 / 下半分：クリップ用の箱 */
+.half{
+  position:absolute;
+  left:0;
+  width:100%;
+  height:50%;
+  overflow:hidden;
+}
+
+.upper{
+  top:0;
+  background: linear-gradient(180deg, rgba(255,255,255,.08), transparent 60%), var(--cardTop);
+  border-top-left-radius: var(--cardRadius);
+  border-top-right-radius: var(--cardRadius);
+}
+
+.lower{
+  bottom:0;
+  background: linear-gradient(0deg, rgba(255,255,255,.06), transparent 55%), var(--cardBot);
+  border-bottom-left-radius: var(--cardRadius);
+  border-bottom-right-radius: var(--cardRadius);
+}
+
+/* ★ここが「真ん中に来てない」バグの本命修正
+   上半分は “数字の中心” を下端(=カード中央)に置く
+   下半分は “数字の中心” を上端(=カード中央)に置く
+   → 1つの数字を上下で切り取った見え方になってズレない
+*/
+.val{
+  position:absolute;
+  left:50%;
+  transform: translate(-50%, -50%);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+  font-size: var(--font);
+  line-height: 1;
+  color: var(--text);
+  user-select:none;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.35));
+}
+
+.upper .val{ top: 100%; } /* カード中央 */
+.lower .val{ top: 0%; }   /* カード中央 */
+
+/* ほんのり質感 */
+.card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: radial-gradient(120% 80% at 50% 0%, rgba(255,255,255,.08), transparent 55%);
+  opacity:.55;
+  pointer-events:none;
+}
+
+.foot{
+  margin-top: 14px;
+  text-align:center;
+  font-size: 12px;
+  color: rgba(255,255,255,.55);
+  letter-spacing:.10em;
+  user-select:none;
+}

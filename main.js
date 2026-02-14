@@ -1,58 +1,98 @@
-const { app, BrowserWindow, screen } = require('electron');
+// main.js
+const path = require("path");
+const { app, BrowserWindow, screen } = require("electron");
 
 let panelWindow = null;
 
-function createPanelWindow() {
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width, height } = primaryDisplay.workAreaSize;
+// 好みで変更OK
+const PANEL_RATIO = 0.25;          // 画面横幅の25%
+const ALWAYS_ON_TOP = true;        // 常に手前（ウィジェット感）
+const SKIP_TASKBAR = true;         // タスクバーに出さない
+const BACKGROUND_COLOR = "#0b0f14";// 透明なし前提の背景色
 
-  const panelWidth = Math.max(1, Math.floor(width * 0.25));
-  const x = primaryDisplay.workArea.x + Math.max(0, width - panelWidth);
-  const y = primaryDisplay.workArea.y;
+function getTargetDisplay() {
+  // マルチモニタでも「今カーソルがいる画面」を基準にする
+  const cursor = screen.getCursorScreenPoint();
+  return screen.getDisplayNearestPoint(cursor);
+}
+
+function calcBounds(display) {
+  // workArea: タスクバー等を除いた領域
+  const { x, y, width, height } = display.workArea;
+
+  const w = Math.max(320, Math.floor(width * PANEL_RATIO)); // 最低幅つけると見た目が安定
+  return {
+    x: x + Math.max(0, width - w),
+    y,
+    width: w,
+    height,
+  };
+}
+
+function reposition() {
+  if (!panelWindow) return;
+  const d = getTargetDisplay();
+  const bounds = calcBounds(d);
+  panelWindow.setBounds(bounds, false);
+}
+
+function createPanelWindow() {
+  const d = getTargetDisplay();
+  const bounds = calcBounds(d);
 
   panelWindow = new BrowserWindow({
-    x,
-    y,
-    width: panelWidth,
-    height,
+    ...bounds,
+
+    // 見た目
     frame: false,
+    transparent: false,            // ← 透明にしない（ユーザー希望）
+    backgroundColor: BACKGROUND_COLOR,
+
+    // 触れないパネルっぽく
     resizable: false,
-    show: true,
-    backgroundColor: '#000000',
+    movable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+
+    // 常駐っぽく
+    alwaysOnTop: ALWAYS_ON_TOP,
+    skipTaskbar: SKIP_TASKBAR,
+    show: false,
+
     webPreferences: {
-      sandbox: true
-    }
+      sandbox: true,
+      contextIsolation: true,
+      // preload が必要ならここに追加
+      // preload: path.join(__dirname, "preload.js"),
+    },
   });
 
-  const html = `
-    <!doctype html>
-    <html>
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>SmartWiget Panel</title>
-        <style>
-          html, body {
-            margin: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          }
-          body {
-            display: grid;
-            place-items: center;
-          }
-        </style>
-      </head>
-      <body>SmartWiget Panel</body>
-    </html>
-  `;
+  panelWindow.setMenuBarVisibility(false);
 
-  panelWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+  // macOSでSpaces/フルスクでも見えるように（不要なら消してOK）
+  if (process.platform === "darwin") {
+    try {
+      panelWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    } catch (_) {}
+  }
 
-  panelWindow.on('closed', () => {
+  // 右クリック等でドラッグ移動できちゃうのも防ぎたいなら：
+  // panelWindow.setIgnoreMouseEvents(true); // ← 完全にクリック不可になるので通常はOFF推奨
+
+  panelWindow.loadFile(path.join(__dirname, "renderer", "index.html"));
+
+  panelWindow.once("ready-to-show", () => {
+    // フォーカス奪わず表示（ウィジェットっぽい）
+    panelWindow.showInactive();
+  });
+
+  // 画面設定が変わっても右端に追従
+  screen.on("display-metrics-changed", reposition);
+  screen.on("display-added", reposition);
+  screen.on("display-removed", reposition);
+
+  panelWindow.on("closed", () => {
     panelWindow = null;
   });
 }
@@ -60,15 +100,12 @@ function createPanelWindow() {
 app.whenReady().then(() => {
   createPanelWindow();
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createPanelWindow();
-    }
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) createPanelWindow();
   });
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+// Windows/Linuxはウィンドウ閉じたら終了
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
 });
