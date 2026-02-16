@@ -20,3 +20,5 @@ npm run dev
 対応OS: Windows / macOS / Linux（Arch含む）
 
 各OS 用のビルドの仕方は後で書きます
+
+ウェーイ
